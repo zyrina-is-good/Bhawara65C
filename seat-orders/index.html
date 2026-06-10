@@ -1,0 +1,2874 @@
+<!DOCTYPE html>
+
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Seat Booking</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        body {
+
+            background: linear-gradient(135deg, #09090b 0%, #1e1b4b 100%);
+
+            color: #f8fafc;
+
+            font-family: 'Outfit', sans-serif;
+
+            text-align: center;
+
+            margin: 0;
+
+            padding: 20px;
+
+            min-height: 100vh;
+
+        }
+
+        h1 {
+
+            margin-bottom: 5px;
+
+            font-size: 2.5rem;
+
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+
+            -webkit-background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+
+        }
+
+        .note {
+
+            opacity: 0.7;
+
+            font-size: 15px;
+
+            margin-bottom: 40px;
+
+        }
+
+        .classroom {
+
+            position: relative;
+
+            max-width: 900px;
+
+            margin: 0 auto;
+
+            padding: 40px 30px;
+
+            background: rgba(255, 255, 255, 0.03);
+
+            backdrop-filter: blur(16px);
+
+            -webkit-backdrop-filter: blur(16px);
+
+            border: 1px solid rgba(255, 255, 255, 0.1);
+
+            border-radius: 20px;
+
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+        }
+
+        .front-wall {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 30px;
+
+            margin-bottom: 100px;
+
+        }
+
+        .whiteboard {
+
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            padding: 15px 140px;
+
+            font-weight: 700;
+
+            font-size: 18px;
+
+            background: rgba(255, 255, 255, 0.05);
+
+            letter-spacing: 3px;
+
+            border-radius: 8px;
+
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+
+        }
+
+        .teacher-desk {
+
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+
+            padding: 20px;
+
+            width: 160px;
+
+            text-align: center;
+
+            border-radius: 12px;
+
+            font-size: 16px;
+
+            font-weight: 700;
+
+            letter-spacing: 2px;
+
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+
+            margin: 0 auto 60px auto;
+
+        }
+
+        .schedule-board {
+
+            background: rgba(15, 23, 42, 0.9);
+
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            padding: 15px 25px;
+
+            border-radius: 12px;
+
+            text-align: center;
+
+            cursor: pointer;
+
+            transition: all 0.3s ease;
+
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+
+            min-width: 250px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 5px;
+
+        }
+
+        .schedule-board:hover {
+
+            transform: translateY(-2px);
+
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+
+            border-color: rgba(96, 165, 250, 0.5);
+
+        }
+
+        .sb-status {
+
+            font-size: 12px;
+
+            color: #94a3b8;
+
+            text-transform: uppercase;
+
+            letter-spacing: 2px;
+
+            margin-bottom: 2px;
+
+        }
+
+        .sb-subject {
+
+            font-size: 20px;
+
+            font-weight: 700;
+
+            color: #fbbf24;
+
+            margin-bottom: 2px;
+
+        }
+
+        .sb-time {
+
+            font-size: 13px;
+
+            color: #e2e8f0;
+
+        }
+
+        .door-container {
+
+            position: absolute;
+
+            right: 0;
+
+            top: 120px;
+
+        }
+
+        .door {
+
+            writing-mode: vertical-rl;
+
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            padding: 50px 12px;
+
+            background: linear-gradient(to bottom, #d97706, #b45309);
+
+            font-weight: 700;
+
+            letter-spacing: 3px;
+
+            border-right: none;
+
+            border-radius: 8px 0 0 8px;
+
+            box-shadow: -4px 0 15px rgba(217, 119, 6, 0.2);
+
+        }
+
+        .container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 30px;
+
+            align-items: center;
+
+            width: 100%;
+
+        }
+
+        .desk-row {
+
+            display: flex;
+
+            width: 100%;
+
+            justify-content: space-between;
+
+        }
+
+        .desk {
+
+            display: flex;
+
+            background: rgba(0, 0, 0, 0.2);
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 12px;
+
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+            transition: all 0.3s ease;
+
+        }
+
+        .desk:hover {
+
+            border-color: rgba(255, 255, 255, 0.2);
+
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+        }
+
+        .seat {
+
+            width: 80px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            cursor: pointer;
+
+            transition: all 0.3s ease;
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+        .seat:first-child {
+
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+
+        }
+
+        .seat:hover {
+
+            transform: translateY(-4px);
+
+            z-index: 10;
+
+        }
+
+        .seat::after {
+
+            content: '';
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            right: 0;
+
+            bottom: 0;
+
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+
+            opacity: 0;
+
+            transition: opacity 0.3s ease;
+
+        }
+
+        .seat:hover::after {
+
+            opacity: 1;
+
+        }
+
+        .seat-name {
+
+            padding: 12px 6px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            height: 20px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            overflow: hidden;
+
+            white-space: nowrap;
+
+            text-overflow: ellipsis;
+
+            color: #f8fafc;
+
+        }
+
+        .seat-absen {
+
+            padding: 10px;
+
+            font-size: 15px;
+
+            height: 20px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: #cbd5e1;
+
+            font-weight: 700;
+
+        }
+
+        .empty {
+
+            background: rgba(34, 197, 94, 0.1);
+
+        }
+
+        .empty .seat-name,
+
+        .empty .seat-absen {
+
+            color: rgba(34, 197, 94, 0.8);
+
+        }
+
+        .empty:hover {
+
+            box-shadow: 0 10px 20px rgba(34, 197, 94, 0.2);
+
+            background: rgba(34, 197, 94, 0.2);
+
+        }
+
+        .filled {
+
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.4));
+
+        }
+
+        .filled:hover {
+
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+
+        }
+
+        .admin-panel {
+
+            position: fixed;
+
+            left: 0;
+
+            top: 0;
+
+            bottom: 0;
+
+            width: 240px;
+
+            background: rgba(15, 23, 42, 0.8);
+
+            backdrop-filter: blur(20px);
+
+            -webkit-backdrop-filter: blur(20px);
+
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+            padding: 30px 20px;
+
+            overflow-y: auto;
+
+            text-align: left;
+
+            box-shadow: 5px 0 30px rgba(0, 0, 0, 0.5);
+
+            z-index: 100;
+
+            transform: translateX(-100%);
+
+            transition: transform 0.3s ease;
+
+        }
+
+        .admin-panel.open {
+
+            transform: translateX(0);
+
+        }
+
+        .admin-panel h3 {
+
+            margin-top: 0;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+            padding-bottom: 15px;
+
+            font-size: 20px;
+
+            font-weight: 700;
+
+            background: linear-gradient(to right, #f43f5e, #fb923c);
+
+            -webkit-background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+
+        }
+
+        .admin-item {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            background: rgba(255, 255, 255, 0.03);
+
+            border: 1px solid rgba(255, 255, 255, 0.05);
+
+            padding: 10px 12px;
+
+            margin-bottom: 10px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+
+            transition: 0.2s;
+
+        }
+
+        .admin-item:hover {
+
+            background: rgba(255, 255, 255, 0.08);
+
+        }
+
+        .btn-delete {
+
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+
+            color: white;
+
+            border: none;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+
+            padding: 6px 12px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            transition: 0.3s ease;
+
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+
+        }
+
+        .btn-delete:hover {
+
+            transform: scale(1.05);
+
+            box-shadow: 0 6px 15px rgba(239, 68, 68, 0.5);
+
+        }
+
+        .modal-overlay {
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            right: 0;
+
+            bottom: 0;
+
+            background: rgba(0, 0, 0, 0.6);
+
+            backdrop-filter: blur(5px);
+
+            -webkit-backdrop-filter: blur(5px);
+
+            z-index: 1000;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+        }
+
+        .modal-content {
+
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+
+            border: 1px solid rgba(255, 255, 255, 0.1);
+
+            border-radius: 16px;
+
+            padding: 30px;
+
+            width: 320px;
+
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+            color: white;
+
+            text-align: left;
+
+            animation: modalFadeIn 0.3s ease;
+
+        }
+
+        @keyframes modalFadeIn {
+
+            from {
+
+                opacity: 0;
+
+                transform: translateY(-20px) scale(0.95);
+
+            }
+
+            to {
+
+                opacity: 1;
+
+                transform: translateY(0) scale(1);
+
+            }
+
+        }
+
+        .modal-content h3 {
+
+            margin-top: 0;
+
+            margin-bottom: 20px;
+
+            font-size: 20px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+            padding-bottom: 10px;
+
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+
+            -webkit-background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+
+        }
+
+        .modal-content input {
+
+            width: 100%;
+
+            padding: 12px;
+
+            margin-bottom: 15px;
+
+            background: rgba(255, 255, 255, 0.05);
+
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            border-radius: 8px;
+
+            color: white;
+
+            font-family: 'Outfit', sans-serif;
+
+            box-sizing: border-box;
+
+            font-size: 14px;
+
+            outline: none;
+
+            transition: 0.2s;
+
+        }
+
+        .modal-content input:focus {
+
+            border-color: #3b82f6;
+
+            background: rgba(255, 255, 255, 0.1);
+
+        }
+
+        .modal-content select {
+
+            width: 100%;
+
+            padding: 12px;
+
+            margin-bottom: 15px;
+
+            background: rgba(255, 255, 255, 0.05);
+
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            border-radius: 8px;
+
+            color: white;
+
+            font-family: 'Outfit', sans-serif;
+
+            box-sizing: border-box;
+
+            font-size: 14px;
+
+            outline: none;
+
+            transition: 0.2s;
+
+        }
+
+        .modal-content select:focus {
+
+            border-color: #3b82f6;
+
+            background: rgba(255, 255, 255, 0.1);
+
+        }
+
+        .modal-content select option {
+
+            background: #1e293b;
+
+            color: white;
+
+        }
+
+        .detail-info p {
+
+            margin: 10px 0;
+
+            font-size: 15px;
+
+            color: #e2e8f0;
+
+        }
+
+        .modal-actions {
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            gap: 10px;
+
+            margin-top: 25px;
+
+        }
+
+        .modal-actions button {
+
+            padding: 10px 18px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            font-family: 'Outfit', sans-serif;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+
+        }
+
+        .btn-cancel {
+
+            background: rgba(255, 255, 255, 0.1);
+
+            color: white;
+
+        }
+
+        .btn-cancel:hover {
+
+            background: rgba(255, 255, 255, 0.2);
+
+        }
+
+        .btn-primary {
+
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+
+            color: white;
+
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+
+        }
+
+        .btn-primary:hover {
+
+            filter: brightness(1.1);
+
+            transform: translateY(-1px);
+
+        }
+
+        .btn-danger {
+
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+
+            color: white;
+
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+
+        }
+
+        .btn-danger:hover {
+
+            filter: brightness(1.1);
+
+            transform: translateY(-1px);
+
+        }
+
+        .admin-toggle {
+
+            display: flex;
+
+            position: fixed;
+
+            bottom: 20px;
+
+            right: 20px;
+
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+
+            color: #60a5fa;
+
+            border: 2px solid rgba(96, 165, 250, 0.3);
+
+            border-radius: 50%;
+
+            width: 56px;
+
+            height: 56px;
+
+            align-items: center;
+
+            justify-content: center;
+
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(59, 130, 246, 0.3);
+
+            z-index: 101;
+
+            cursor: pointer;
+
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        }
+
+        .admin-toggle:hover {
+
+            transform: scale(1.1);
+
+        }
+
+        .classroom-wrapper {
+
+            width: 100%;
+
+            overflow-x: auto;
+
+            padding-bottom: 20px;
+
+        }
+
+        @media (max-width: 768px) {
+
+            body {
+
+                padding-left: 0;
+
+                padding-top: 60px;
+
+            }
+
+            h1 {
+
+                font-size: 2rem;
+
+            }
+
+            .classroom {
+
+                width: max-content;
+
+                min-width: 800px;
+
+                margin: 0 auto;
+
+                padding: 20px;
+
+            }
+
+        }
+
+        .switch {
+
+            position: relative;
+
+            display: inline-block;
+
+            width: 44px;
+
+            height: 24px;
+
+            flex-shrink: 0;
+
+        }
+
+        .switch input {
+
+            opacity: 0;
+
+            width: 0;
+
+            height: 0;
+
+        }
+
+        .slider {
+
+            position: absolute;
+
+            cursor: pointer;
+
+            top: 0;
+
+            left: 0;
+
+            right: 0;
+
+            bottom: 0;
+
+            background-color: rgba(255, 255, 255, 0.2);
+
+            transition: .4s;
+
+            border-radius: 24px;
+
+            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        }
+
+        .slider:before {
+
+            position: absolute;
+
+            content: "";
+
+            height: 18px;
+
+            width: 18px;
+
+            left: 2px;
+
+            bottom: 2px;
+
+            background-color: white;
+
+            transition: .4s;
+
+            border-radius: 50%;
+
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+
+        }
+
+        input:checked+.slider {
+
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+
+            border-color: #3b82f6;
+
+        }
+
+        input:checked+.slider:before {
+
+            transform: translateX(20px);
+
+        }
+
+        .day-tab {
+
+            padding: 6px 12px;
+
+            background: rgba(255,255,255,0.05);
+
+            border: 1px solid rgba(255,255,255,0.1);
+
+            color: #94a3b8;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+
+            flex-shrink: 0;
+
+            font-size: 13px;
+
+            transition: 0.2s;
+
+        }
+
+        .day-tab:hover {
+
+            background: rgba(255,255,255,0.1);
+
+        }
+
+        .day-tab.active {
+
+            background: rgba(59, 130, 246, 0.2);
+
+            color: #60a5fa;
+
+            border-color: #3b82f6;
+
+        }
+
+        .schedule-slot-row {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+        }
+
+        .schedule-slot-label {
+
+            font-size: 12px;
+
+            color: #94a3b8;
+
+            width: 140px;
+
+            flex-shrink: 0;
+
+        }
+
+        .schedule-slot-input {
+
+            flex-grow: 1;
+
+            padding: 8px !important;
+
+            margin: 0 !important;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <a href="/" style="position: fixed; top: 20px; left: 20px; background: rgba(15, 23, 42, 0.8); color: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); z-index: 9999; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-family: sans-serif;">
+
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+
+        Main Menu
+
+    </a>
+
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+
+        <div id="modal-booking" class="modal-content" style="display: none;">
+
+            <h3>Daftar Kursi <span id="booking-seat-id"></span></h3>
+
+            <select id="booking-name"
+
+                style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-family: 'Outfit', sans-serif; outline: none;">
+
+                <option value="" disabled selected>Pilih Nama</option>
+
+            </select>
+
+            <input type="number" id="booking-absen" placeholder="Nomor Absen otomatis" readonly
+
+                style="background: rgba(255,255,255,0.02); color: #94a3b8; cursor: not-allowed; border-color: rgba(255,255,255,0.05);">
+
+            <div class="modal-actions">
+
+                <button class="btn-cancel" onclick="closeModal()">Batal</button>
+
+                <button class="btn-primary" onclick="submitBooking()">Simpan</button>
+
+            </div>
+
+        </div>
+
+        <div id="modal-detail" class="modal-content" style="display: none;">
+
+            <h3>Detail Kursi <span id="detail-seat-id"></span></h3>
+
+            <div class="detail-info">
+
+                <p><strong>Nama:</strong> <span id="detail-name"></span></p>
+
+                <p><strong>Absen:</strong> <span id="detail-absen"></span></p>
+
+            </div>
+
+            <div class="modal-actions">
+
+                <button class="btn-primary" onclick="closeModal()">Tutup</button>
+
+            </div>
+
+        </div>
+
+        <div id="modal-confirm" class="modal-content" style="display: none;">
+
+            <h3>Konfirmasi Hapus</h3>
+
+            <p>Hapus data kursi <span id="confirm-seat-id" style="font-weight:bold;"></span> atas nama <span
+
+                    id="confirm-name" style="font-weight:bold; color:#ef4444;"></span>?</p>
+
+            <div class="modal-actions">
+
+                <button class="btn-cancel" onclick="closeModal()">Batal</button>
+
+                <button class="btn-danger" onclick="submitDelete()">Hapus</button>
+
+            </div>
+
+        </div>
+
+        <div id="modal-confirm-all" class="modal-content" style="display: none;">
+
+            <h3>Konfirmasi Hapus Semua</h3>
+
+            <p>Apakah Anda yakin ingin menghapus <b>semua</b> data kursi? Aksi ini tidak dapat dibatalkan.</p>
+
+            <div class="modal-actions">
+
+                <button class="btn-cancel" onclick="closeModal()">Batal</button>
+
+                <button class="btn-danger" onclick="submitDeleteAll()">Hapus Semua</button>
+
+            </div>
+
+        </div>
+
+        <div id="modal-randomize" class="modal-content" style="display: none;">
+
+            <h3>Konfirmasi Acak Kursi</h3>
+
+            <p>Aksi ini akan mereset semua kursi dan mengisinya kembali secara acak (cowok dan cewek berpasangan).</p>
+
+            <div class="modal-actions">
+
+                <button class="btn-cancel" onclick="closeModal()">Batal</button>
+
+                <button class="btn-primary" onclick="submitRandomizeSeats()">Acak Sekarang</button>
+
+            </div>
+
+        </div>
+
+        <div id="modal-login" class="modal-content" style="display: none;">
+
+            <h3>Login Admin</h3>
+
+            <input type="password" id="login-password" placeholder="Masukkan Password Admin">
+
+            <div class="modal-actions">
+
+                <button class="btn-cancel" onclick="closeModal()">Batal</button>
+
+                <button class="btn-primary" onclick="submitLogin()">Masuk</button>
+
+            </div>
+
+        </div>
+
+        <div id="modal-schedule" class="modal-content" style="display: none;">
+
+            <h3>Informasi Jadwal</h3>
+
+            <div id="schedule-info-display">
+
+                <p><strong id="s-subject-label">Pelajaran:</strong> <span id="s-subject"
+
+                        style="color:#fbbf24; font-weight:bold;">-</span></p>
+
+                <p><strong>Waktu:</strong> <span id="s-time">-</span></p>
+
+                <p><strong>Info Tambahan:</strong> <span id="s-note">-</span></p>
+
+            </div>
+
+            <div id="schedule-tomorrow-display"
+
+                style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+
+                <p style="font-weight:bold; color:#60a5fa; margin-bottom:10px;">📅 Jadwal Besok:</p>
+
+                <ul id="s-tomorrow-list"
+
+                    style="margin:0; padding-left:20px; font-size:14px; color:#e2e8f0; line-height:1.6;"></ul>
+
+            </div>
+
+            <div id="schedule-edit-form"
+
+                style="display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; max-height: 400px; overflow-y: auto;">
+
+                <label style="font-size:13px; color:#94a3b8; display:block; margin-bottom:5px;">Mode Jadwal</label>
+
+                <select id="s-mode" onchange="toggleScheduleModeUI()">
+
+                    <option value="auto">Otomatis (Ikut Jadwal)</option>
+
+                    <option value="manual">Manual (Isi Sendiri)</option>
+
+                </select>
+
+                <div id="s-manual-ui" style="display: none;">
+
+                    <input type="text" id="input-s-subject" placeholder="Pelajaran (Cth: Matematika)">
+
+                    <input type="text" id="input-s-time" placeholder="Waktu (Cth: 07:00 - 08:30)">
+
+                </div>
+
+                <div id="s-auto-ui">
+
+                    <label style="font-size:13px; color:#94a3b8; display:block; margin-bottom:5px;">Tipe Waktu</label>
+
+                    <select id="s-timing-type" onchange="renderScheduleInputs()">
+
+                        <option value="auto_detect">Deteksi Otomatis (Ikut Kalender)</option>
+
+                        <option value="normal">Normal (40 Menit / JP)</option>
+
+                        <option value="ramadhan">Ramadhan (35 Menit / JP)</option>
+
+                        <option value="senin_tanpa_upacara">Senin Tanpa Upacara</option>
+
+                    </select>
+
+                    <label style="font-size:13px; color:#94a3b8; display:block; margin-top:15px; margin-bottom:5px;">Mata Pelajaran</label>
+
+                    <div class="day-tabs" style="display:flex; gap:5px; margin-bottom: 10px; overflow-x: auto;">
+
+                        <button class="day-tab active" id="tab-day-1" onclick="switchDayTab(1)">Senin</button>
+
+                        <button class="day-tab" id="tab-day-2" onclick="switchDayTab(2)">Selasa</button>
+
+                        <button class="day-tab" id="tab-day-3" onclick="switchDayTab(3)">Rabu</button>
+
+                        <button class="day-tab" id="tab-day-4" onclick="switchDayTab(4)">Kamis</button>
+
+                        <button class="day-tab" id="tab-day-5" onclick="switchDayTab(5)">Jumat</button>
+
+                    </div>
+
+                    <div id="schedule-inputs-container" style="display:flex; flex-direction:column; gap:8px;">
+
+                    </div>
+
+                </div>
+
+                <input type="text" id="input-s-note" placeholder="Catatan Tambahan (Opsional)" style="margin-top:10px;">
+
+                <div class="modal-actions" style="margin-top:10px;">
+
+                    <button class="btn-danger" style="margin-right:auto;"
+
+                        onclick="clearScheduleInfo()">Kosongkan</button>
+
+                    <button class="btn-primary" onclick="saveScheduleInfo()">Siarkan</button>
+
+                </div>
+
+            </div>
+
+            <div class="modal-actions">
+
+                <button class="btn-cancel" onclick="closeModal()">Tutup</button>
+
+                <button class="btn-primary" id="btn-edit-schedule" style="display:none;"
+
+                    onclick="toggleScheduleEdit()">Edit (Admin)</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <button class="admin-toggle" onclick="toggleAdmin()">
+
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+            <path
+
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
+
+            </path>
+
+            <circle cx="12" cy="12" r="3"></circle>
+
+        </svg>
+
+    </button>
+
+    <div class="admin-panel">
+
+        <h3>Admin Panel</h3>
+
+        <div id="admin-login-area">
+
+            <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="openLoginModal()">Login
+
+                Admin</button>
+
+        </div>
+
+        <div id="admin-content-area" style="display: none;">
+
+            <div
+
+                style="margin-bottom: 15px; padding: 12px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+
+                <span style="font-size: 13px; font-weight: bold; color: #f8fafc;">Set Hari Ini Libur</span>
+
+                <label class="switch">
+
+                    <input type="checkbox" id="admin-holiday-toggle" onchange="toggleHolidayStatus()">
+
+                    <span class="slider"></span>
+
+                </label>
+
+            </div>
+
+            <button class="btn-primary" style="width:100%; margin-bottom:10px;" onclick="promptRandomize()">Acak Kursi
+
+                (Cowok-Cewek)</button>
+
+            <button class="btn-danger" style="width:100%; margin-bottom:15px;" onclick="promptDeleteAll()">Hapus Semua
+
+                Kursi</button>
+
+            <p style="font-size: 12px; opacity: 0.8; margin-top:0;">Daftar kursi terisi:</p>
+
+            <div id="admin-list"></div>
+
+            <button class="btn-cancel" style="width:100%; margin-top:20px;" onclick="logoutAdmin()">Logout</button>
+
+        </div>
+
+    </div>
+
+    <h1>Pilih Kursi</h1>
+
+    <div class="note">Klik kursi untuk isi / lihat detail</div>
+
+    <div class="classroom-wrapper">
+
+        <div class="classroom">
+
+            <div class="front-wall">
+
+                <div class="whiteboard">PAPAN TULIS</div>
+
+            </div>
+
+            <div class="door-container">
+
+                <div class="door">PINTU</div>
+
+            </div>
+
+            <div class="teacher-desk" id="teacher-desk">MEJA GURU</div>
+
+            <div class="container" id="seats"></div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        const supabaseUrl = "https://basaafhivrfpkytcacsi.supabase.co";
+
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhc2FhZmhpdnJmcGt5dGNhY3NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MDQ0ODksImV4cCI6MjA5NTE4MDQ4OX0.-vvIoSse9Ztp_ljGb6BwVNxon1geLBCkHvBet5gq1tU";
+
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let nationalHolidays = {};
+
+        let dbSchedules = {};
+
+        async function fetchHolidays() {
+
+            try {
+
+                const [res, { data: sbHolidays }] = await Promise.all([
+
+                    fetch('https://libur.deno.dev/api').catch(() => ({ ok: false })),
+
+                    supabaseClient.from('Holidays').select('*')
+
+                ]);
+
+                if (res.ok) {
+
+                    const data = await res.json();
+
+                    data.forEach(item => {
+
+                        nationalHolidays[item.date] = item.name;
+
+                    });
+
+                }
+
+                if (sbHolidays) {
+
+                    sbHolidays.forEach(h => {
+
+                        nationalHolidays[h.date] = h.name;
+
+                    });
+
+                }
+
+                if (typeof renderScheduleBoard === 'function') {
+
+                    renderScheduleBoard();
+
+                    if (typeof currentTeacherInfo !== 'undefined' && document.getElementById("admin-holiday-toggle")) {
+
+                        const d = new Date();
+
+                        const todayStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+
+                        let isH = false;
+
+                        if (currentTeacherInfo.holidayOverrideDate === todayStr) {
+
+                            isH = currentTeacherInfo.holidayOverrideValue;
+
+                        } else if (nationalHolidays[todayStr]) {
+
+                            isH = true;
+
+                        }
+
+                        document.getElementById("admin-holiday-toggle").checked = isH;
+
+                    }
+
+                }
+
+            } catch (err) {
+
+                console.error("Gagal mengambil data libur:", err);
+
+            }
+
+        }
+
+        async function fetchSchedules() {
+
+            const { data, error } = await supabaseClient.from('Schedules').select('*');
+
+            if (data) {
+
+                data.forEach(s => {
+
+                    dbSchedules[s.day_id] = s.subjects;
+
+                });
+
+                if (typeof renderScheduleBoard === 'function') renderScheduleBoard();
+
+            }
+
+        }
+
+        fetchHolidays();
+
+        fetchSchedules();
+
+        const seatsDiv = document.getElementById("seats");
+
+        const adminList = document.getElementById("admin-list");
+
+        const rows = ["A", "B", "C", "D"];
+
+        const cols = 8;
+
+        const studentData = [
+
+            { name: "Hanif", absen: 1 }, { name: "Aisha", absen: 2 }, { name: "Anel", absen: 3 },
+
+            { name: "Arsyad", absen: 4 }, { name: "Avika", absen: 5 }, { name: "Azruul", absen: 6 },
+
+            { name: "Banyu", absen: 7 }, { name: "Nayya", absen: 8 }, { name: "Chelsea", absen: 9 },
+
+            { name: "Gio", absen: 10 }, { name: "Citra", absen: 11 }, { name: "Dimas R", absen: 12 },
+
+            { name: "Zara", absen: 13 }, { name: "Sella", absen: 14 }, { name: "Ifah", absen: 15 },
+
+            { name: "Dimas J", absen: 16 }, { name: "Kael", absen: 17 }, { name: "Kayfa", absen: 18 },
+
+            { name: "Keysha", absen: 19 }, { name: "Khansa", absen: 20 }, { name: "Laela", absen: 21 },
+
+            { name: "Lintang", absen: 22 }, { name: "Azzam", absen: 23 }, { name: "Raihan", absen: 24 },
+
+            { name: "Esha", absen: 25 }, { name: "Naila", absen: 26 }, { name: "Tamaro", absen: 27 },
+
+            { name: "Nayla", absen: 28 }, { name: "Pita", absen: 29 }, { name: "RizQ", absen: 30 },
+
+            { name: "Nadya", absen: 31 }, { name: "Viola", absen: 32 }
+
+        ];
+
+        let globalFilledSeats = [];
+
+        let isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const pageMode = urlParams.get('mode') || 'view';
+
+        window.addEventListener('DOMContentLoaded', () => {
+
+            if (pageMode !== 'register') {
+
+                const toggleBtn = document.querySelector('.admin-toggle');
+
+                if (toggleBtn) toggleBtn.style.display = 'none';
+
+                const adminPanel = document.querySelector('.admin-panel');
+
+                if (adminPanel) adminPanel.style.display = 'none';
+
+            }
+
+            if (isAdminLoggedIn && pageMode === 'register') {
+
+                document.getElementById("admin-login-area").style.display = "none";
+
+                document.getElementById("admin-content-area").style.display = "block";
+
+            }
+
+        });
+
+        let currentSeat = null;
+
+        let currentTeacherInfo = { mode: 'auto', subject: '-', time: '-', note: '-' };
+
+        let teacherInterval = null;
+
+        const defaultSchedule = {
+
+            '1': "PJOK, PJOK, PJOK, B.INDO, B.INDO, B.INDO, BK, B.JAWA, B.JAWA",
+
+            '2': "Matematika, Matematika, Matematika, IPS, IPS, B. INGG, KEAGAMAAN, B.INGG, IPA, IPA",
+
+            '3': "PPKn, PPKn, PPKn, SB/Prky, SB/Prky, SB/Prky, Informatika, Informatika, Informatika",
+
+            '4': "B.INGG, B.INGG, AGAMA, AGAMA, AGAMA, IPS, IPS, MTK, MTK",
+
+            '5': "B.INDO, B.INDO, B.INDO, IPA, IPA, IPA"
+
+        };
+
+        function checkIsRamadhan() {
+
+            try {
+
+                const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic', { month: 'numeric' });
+
+                const monthStr = formatter.format(new Date());
+
+                return monthStr === '9';
+
+            } catch (e) {
+
+                const month = new Date().getMonth();
+
+                return month === 1 || month === 2;
+
+            }
+
+        }
+
+        const timings = {
+
+            senin_tanpa_upacara: [
+
+                { id: 'prep', name: 'Tadarus/Doa/Literasi', start: '07:00', end: '07:45' },
+
+                { id: 1, name: 'Jam 1', start: '07:45', end: '08:25' },
+
+                { id: 2, name: 'Jam 2', start: '08:25', end: '09:05' },
+
+                { id: 3, name: 'Jam 3', start: '09:05', end: '09:45' },
+
+                { id: 'ist1', name: 'Istirahat 1', start: '09:45', end: '10:00' },
+
+                { id: 4, name: 'Jam 4', start: '10:00', end: '10:40' },
+
+                { id: 5, name: 'Jam 5', start: '10:40', end: '11:20' },
+
+                { id: 6, name: 'Jam 6', start: '11:20', end: '12:00' },
+
+                { id: 'ist2', name: 'Istirahat 2', start: '12:00', end: '12:30' },
+
+                { id: 7, name: 'Jam 7 (BK)', start: '12:30', end: '13:10' },
+
+                { id: 8, name: 'Jam 8', start: '13:10', end: '13:50' },
+
+                { id: 9, name: 'Jam 9', start: '13:50', end: '14:30' },
+
+                { id: 10, name: 'Jam 10', start: '14:30', end: '15:10' }
+
+            ],
+
+            ramadhan: [
+
+                { id: 'prep', name: 'Tadarus/Doa/Literasi', start: '07:00', end: '07:30' },
+
+                { id: 1, name: 'Jam 1', start: '07:30', end: '08:05' },
+
+                { id: 2, name: 'Jam 2', start: '08:05', end: '08:40' },
+
+                { id: 3, name: 'Jam 3', start: '08:40', end: '09:15' },
+
+                { id: 'ist1', name: 'Istirahat 1', start: '09:15', end: '09:30' },
+
+                { id: 4, name: 'Jam 4', start: '09:30', end: '10:05' },
+
+                { id: 5, name: 'Jam 5', start: '10:05', end: '10:40' },
+
+                { id: 6, name: 'Jam 6', start: '10:40', end: '11:15' },
+
+                { id: 'ist2', name: 'Istirahat 2', start: '11:15', end: '11:35' },
+
+                { id: 7, name: 'Jam 7', start: '11:35', end: '12:10' },
+
+                { id: 8, name: 'Jam 8', start: '12:10', end: '12:45' },
+
+                { id: 9, name: 'Jam 9', start: '12:45', end: '13:20' },
+
+                { id: 10, name: 'Jam 10', start: '13:20', end: '13:55' }
+
+            ],
+
+            normal: [
+
+                { id: 'prep', name: 'Tadarus/Doa/Literasi', start: '07:00', end: '07:30' },
+
+                { id: 1, name: 'Jam 1', start: '07:30', end: '08:10' },
+
+                { id: 2, name: 'Jam 2', start: '08:10', end: '08:50' },
+
+                { id: 3, name: 'Jam 3', start: '08:50', end: '09:30' },
+
+                { id: 'ist1', name: 'Istirahat 1', start: '09:30', end: '09:45' },
+
+                { id: 4, name: 'Jam 4', start: '09:45', end: '10:25' },
+
+                { id: 5, name: 'Jam 5', start: '10:25', end: '11:05' },
+
+                { id: 6, name: 'Jam 6', start: '11:05', end: '11:45' },
+
+                { id: 'ist2', name: 'Istirahat 2', start: '11:45', end: '12:05' },
+
+                { id: 7, name: 'Jam 7', start: '12:05', end: '12:45' },
+
+                { id: 8, name: 'Jam 8', start: '12:45', end: '13:25' },
+
+                { id: 9, name: 'Jam 9', start: '13:25', end: '14:05' },
+
+                { id: 10, name: 'Jam 10', start: '14:05', end: '14:45' }
+
+            ]
+
+        };
+
+        function timeToMins(timeStr) {
+
+            const [h, m] = timeStr.split(':').map(Number);
+
+            return h * 60 + m;
+
+        }
+
+        function getCurrentSlot(timingType) {
+
+            const now = new Date();
+
+            const currentMins = now.getHours() * 60 + now.getMinutes();
+
+            const schedule = timings[timingType];
+
+            if (currentMins < timeToMins(schedule[0].start)) return { id: 'before', name: 'Belum Mulai', start: '-', end: '-' };
+
+            if (currentMins >= timeToMins(schedule[schedule.length - 1].end)) return { id: 'after', name: 'Pulang', start: '-', end: '-' };
+
+            for (let slot of schedule) {
+
+                if (currentMins >= timeToMins(slot.start) && currentMins < timeToMins(slot.end)) {
+
+                    return slot;
+
+                }
+
+            }
+
+            return null;
+
+        }
+
+        function renderScheduleBoard() {
+
+            if (!currentTeacherInfo) return;
+
+            const today = new Date();
+
+            const todayStr = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
+
+            let isHoliday = false;
+
+            let holidayReason = '';
+
+            const autoHoliday = nationalHolidays[todayStr];
+
+            if (currentTeacherInfo.holidayOverrideDate === todayStr) {
+
+                isHoliday = currentTeacherInfo.holidayOverrideValue;
+
+                if (isHoliday) holidayReason = currentTeacherInfo.note || 'Diliburkan oleh Admin';
+
+            } else if (autoHoliday) {
+
+                isHoliday = true;
+
+                holidayReason = autoHoliday;
+
+            }
+
+            if (isHoliday) {
+
+                currentScheduleStatusId = 'after';
+
+                updateScheduleBoardUIText('INFO JADWAL', 'Hari Libur', '-', holidayReason);
+
+                return;
+
+            }
+
+            if (currentTeacherInfo.mode === 'auto') {
+
+                const d = new Date();
+
+                const dayIdx = d.getDay();
+
+                let tType = currentTeacherInfo.timingType || 'auto_detect';
+
+                if (tType === 'auto_detect') {
+
+                    tType = checkIsRamadhan() ? 'ramadhan' : 'normal';
+
+                }
+
+                const slot = getCurrentSlot(tType);
+
+                if (dayIdx === 0 || dayIdx === 6) {
+
+                    currentScheduleStatusId = 'after';
+
+                    updateScheduleBoardUIText('INFO JADWAL', 'Hari Libur', '-', currentTeacherInfo.note || 'Selamat Berakhir Pekan');
+
+                } else if (slot) {
+
+                    currentScheduleStatusId = slot.id;
+
+                    const isRamadhanMode = (tType === 'ramadhan');
+
+                    let statusLabel = typeof slot.id === 'number' ? `JAM KE-${slot.id}` : 'INFO JADWAL';
+
+                    if (typeof slot.id === 'number') {
+
+                        let subjectsForDayStr = dbSchedules[dayIdx] || defaultSchedule[dayIdx];
+
+                        let subjectsForDay = subjectsForDayStr ? subjectsForDayStr.split(',').map(s => s.trim()) : [];
+
+                        let subjectName = subjectsForDay[slot.id - 1] || slot.name;
+
+                        let startSlotId = slot.id;
+
+                        while (startSlotId > 1 && subjectsForDay[startSlotId - 2] === subjectName) {
+
+                            startSlotId--;
+
+                        }
+
+                        let endSlotId = slot.id;
+
+                        while (endSlotId < subjectsForDay.length && subjectsForDay[endSlotId] === subjectName) {
+
+                            endSlotId++;
+
+                        }
+
+                        let startTime = timings[tType].find(s => s.id === startSlotId)?.start || slot.start;
+
+                        let endTime = timings[tType].find(s => s.id === endSlotId)?.end || slot.end;
+
+                        statusLabel = (startSlotId === endSlotId) ? `JAM KE-${slot.id}` : `JAM KE-${startSlotId}-${endSlotId}`;
+
+                        updateScheduleBoardUIText(statusLabel, subjectName, `${startTime} - ${endTime}`, currentTeacherInfo.note || (isRamadhanMode ? 'Mode Otomatis (Ramadhan)' : 'Mode Otomatis'));
+
+                    } else {
+
+                        updateScheduleBoardUIText(statusLabel, slot.name, `${slot.start} - ${slot.end}`, currentTeacherInfo.note || (isRamadhanMode ? 'Mode Otomatis (Ramadhan)' : 'Mode Otomatis'));
+
+                    }
+
+                }
+
+            } else {
+
+                currentScheduleStatusId = null;
+
+                updateScheduleBoardUIText(
+
+                    'PENGUMUMAN',
+
+                    currentTeacherInfo.subject || 'Kosong',
+
+                    currentTeacherInfo.time || '-',
+
+                    currentTeacherInfo.note || '-'
+
+                );
+
+            }
+
+        }
+
+        function updateScheduleBoardUIText(status, subject, time, note) {
+
+            const elStatus = document.getElementById('sb-display-status');
+
+            if (!elStatus) return; 
+
+            elStatus.innerText = status;
+
+            document.getElementById('sb-display-subject').innerText = subject;
+
+            document.getElementById('sb-display-time').innerText = time;
+
+            let label = 'Pelajaran:';
+
+            if (status === 'PENGUMUMAN' || subject === 'Hari Libur' || subject === 'Belum Mulai' || subject === 'Pulang' || subject.includes('Istirahat') || subject.includes('Tadarus')) {
+
+                label = 'Keterangan:';
+
+            }
+
+            document.getElementById('s-subject-label').innerText = label;
+
+            document.getElementById('s-subject').innerText = subject;
+
+            document.getElementById('s-time').innerText = time;
+
+            document.getElementById('s-note').innerText = note;
+
+        }
+
+        function updateScheduleBoardUI(info) {
+
+            if (!info.mode) info.mode = 'auto';
+
+            currentTeacherInfo = info;
+
+            renderScheduleBoard();
+
+            if (!teacherInterval) {
+
+                teacherInterval = setInterval(renderScheduleBoard, 60000);
+
+            }
+
+        }
+
+        function openScheduleModal() {
+
+            document.getElementById('btn-edit-schedule').style.display = isAdminLoggedIn ? 'block' : 'none';
+
+            document.getElementById('schedule-edit-form').style.display = 'none';
+
+            const tomorrowDiv = document.getElementById('schedule-tomorrow-display');
+
+            const tomorrowList = document.getElementById('s-tomorrow-list');
+
+            if (currentTeacherInfo.mode === 'auto' && currentScheduleStatusId === 'after') {
+
+                const tomorrowDate = new Date();
+
+                tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+
+                const dayIdx = tomorrowDate.getDay();
+
+                if (dayIdx >= 1 && dayIdx <= 5) {
+
+                    let schedStr = dbSchedules[dayIdx] || defaultSchedule[dayIdx];
+
+                    let subjects = schedStr ? schedStr.split(',').map(s => s.trim()) : [];
+
+                    let html = '';
+
+                    subjects.forEach((subj, idx) => {
+
+                        if (subj) html += `<li>Jam ${idx + 1}: ${subj}</li>`;
+
+                    });
+
+                    tomorrowList.innerHTML = html || '<li>Tidak ada jadwal</li>';
+
+                    tomorrowDiv.style.display = 'block';
+
+                } else {
+
+                    tomorrowDiv.style.display = 'none';
+
+                }
+
+            } else {
+
+                tomorrowDiv.style.display = 'none';
+
+            }
+
+            openModal('modal-schedule');
+
+        }
+
+        function toggleScheduleModeUI() {
+
+            const mode = document.getElementById('s-mode').value;
+
+            document.getElementById('s-manual-ui').style.display = mode === 'manual' ? 'block' : 'none';
+
+            document.getElementById('s-auto-ui').style.display = mode === 'auto' ? 'block' : 'none';
+
+        }
+
+        let tempSchedules = {};
+
+        let activeDayTab = 1;
+
+        function saveCurrentTabInputs() {
+
+            const inputs = document.querySelectorAll('.schedule-slot-input');
+
+            if (inputs.length > 0) {
+
+                const mapels = Array.from(inputs).map(inp => inp.value.trim() || '').join(',');
+
+                tempSchedules[activeDayTab] = mapels;
+
+            }
+
+        }
+
+        function switchDayTab(dayIdx) {
+
+            saveCurrentTabInputs();
+
+            document.querySelectorAll('.day-tab').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('tab-day-' + dayIdx).classList.add('active');
+
+            activeDayTab = dayIdx;
+
+            renderScheduleInputs();
+
+        }
+
+        function renderScheduleInputs() {
+
+            const container = document.getElementById('schedule-inputs-container');
+
+            container.innerHTML = '';
+
+            let subjectsForDayStr = tempSchedules[activeDayTab];
+
+            let subjectsForDay = subjectsForDayStr ? subjectsForDayStr.split(',').map(s => s.trim()) : [];
+
+            let timingType = document.getElementById('s-timing-type').value;
+
+            const tType = timingType === 'auto_detect' ? 'normal' : timingType;
+
+            const slots = timings[tType].filter(s => typeof s.id === 'number');
+
+            for (let i = 0; i < 10; i++) {
+
+                const slot = slots[i] || { name: `Jam ${i+1}`, start: '-', end: '-' };
+
+                const row = document.createElement('div');
+
+                row.className = 'schedule-slot-row';
+
+                const label = document.createElement('div');
+
+                label.className = 'schedule-slot-label';
+
+                label.innerText = `${slot.name} (${slot.start} - ${slot.end})`;
+
+                const select = document.createElement('select');
+
+                select.className = 'schedule-slot-input';
+
+                select.style.padding = '8px';
+
+                select.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+
+                select.style.color = 'white';
+
+                select.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+
+                select.style.borderRadius = '6px';
+
+                select.style.outline = 'none';
+
+                const currentVal = subjectsForDay[i] || '';
+
+                const mapelList = ["", "Matematika", "B.INDO", "B.INGG", "IPA", "IPS", "PPKn", "PJOK", "AGAMA", "KEAGAMAAN", "SB/Prky", "Informatika", "B.JAWA", "BK"];
+
+                if (currentVal && !mapelList.includes(currentVal)) {
+
+                    mapelList.push(currentVal);
+
+                }
+
+                mapelList.forEach(m => {
+
+                    const opt = document.createElement('option');
+
+                    opt.value = m;
+
+                    opt.innerText = m === "" ? "- Kosong -" : m;
+
+                    if (m === currentVal) opt.selected = true;
+
+                    select.appendChild(opt);
+
+                });
+
+                row.appendChild(label);
+
+                row.appendChild(select);
+
+                container.appendChild(row);
+
+            }
+
+        }
+
+        function toggleScheduleEdit() {
+
+            const form = document.getElementById('schedule-edit-form');
+
+            if (form.style.display === 'none') {
+
+                form.style.display = 'block';
+
+                document.getElementById('s-mode').value = currentTeacherInfo.mode || 'auto';
+
+                document.getElementById('input-s-subject').value = currentTeacherInfo.subject !== 'Kosong' ? (currentTeacherInfo.subject || '') : '';
+
+                document.getElementById('input-s-time').value = currentTeacherInfo.time !== '-' ? (currentTeacherInfo.time || '') : '';
+
+                document.getElementById('input-s-note').value = currentTeacherInfo.note !== '-' ? (currentTeacherInfo.note || '') : '';
+
+                document.getElementById('s-timing-type').value = currentTeacherInfo.timingType || 'auto_detect';
+
+                for (let i = 1; i <= 5; i++) {
+
+                    tempSchedules[i] = dbSchedules[i] || defaultSchedule[i];
+
+                }
+
+                switchDayTab(1);
+
+                toggleScheduleModeUI();
+
+            } else {
+
+                form.style.display = 'none';
+
+            }
+
+        }
+
+        async function saveScheduleInfo() {
+
+            const mode = document.getElementById('s-mode').value;
+
+            const note = document.getElementById('input-s-note').value || '';
+
+            let payloadObj = {
+
+                mode,
+
+                note,
+
+                holidayOverrideDate: currentTeacherInfo.holidayOverrideDate || null,
+
+                holidayOverrideValue: currentTeacherInfo.holidayOverrideValue || false
+
+            };
+
+            if (mode === 'manual') {
+
+                payloadObj.subject = document.getElementById('input-s-subject').value || 'Kosong';
+
+                payloadObj.time = document.getElementById('input-s-time').value || '-';
+
+            } else {
+
+                saveCurrentTabInputs();
+
+                payloadObj.timingType = document.getElementById('s-timing-type').value;
+
+                const scheduleUpdates = [];
+
+                for (let i = 1; i <= 5; i++) {
+
+                    scheduleUpdates.push({ day_id: i.toString(), subjects: tempSchedules[i] });
+
+                }
+
+                const { error: sErr } = await supabaseClient.from('Schedules').upsert(scheduleUpdates);
+
+                if (sErr) {
+
+                    alert("Gagal menyimpan jadwal mapel ke database: " + sErr.message);
+
+                    return;
+
+                }
+
+            }
+
+            const payload = JSON.stringify(payloadObj);
+
+            const { data: checkData } = await supabaseClient.from('Seats').select('*').eq('seat_id', 'TEACHER');
+
+            let res;
+
+            if (checkData && checkData.length > 0) {
+
+                res = await supabaseClient.from('Seats').update({ name: payload, absen: 0 }).eq('seat_id', 'TEACHER');
+
+            } else {
+
+                res = await supabaseClient.from('Seats').insert({ seat_id: 'TEACHER', name: payload, absen: 0 });
+
+            }
+
+            if (res.error) {
+
+                alert("Gagal menyimpan info jadwal utama: " + res.error.message);
+
+                console.error(res.error);
+
+            } else {
+
+                closeModal();
+
+                loadSeats();
+
+                if (mode !== 'manual') fetchSchedules();
+
+            }
+
+        }
+
+        async function clearScheduleInfo() {
+
+            const { data: checkData } = await supabaseClient.from('Seats').select('*').eq('seat_id', 'TEACHER');
+
+            let res;
+
+            if (checkData && checkData.length > 0) {
+
+                res = await supabaseClient.from('Seats').update({ name: null, absen: 0 }).eq('seat_id', 'TEACHER');
+
+            } else {
+
+                res = { error: null };
+
+            }
+
+            if (res.error) {
+
+                alert("Gagal mengosongkan jadwal");
+
+                console.error(res.error);
+
+            } else {
+
+                closeModal();
+
+                loadSeats();
+
+            }
+
+        }
+
+        async function toggleHolidayStatus() {
+
+            const toggleEl = document.getElementById("admin-holiday-toggle");
+
+            const isHoliday = toggleEl.checked;
+
+            const today = new Date();
+
+            const todayStr = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
+
+            currentTeacherInfo.holidayOverrideDate = todayStr;
+
+            currentTeacherInfo.holidayOverrideValue = isHoliday;
+
+            const payload = JSON.stringify(currentTeacherInfo);
+
+            toggleEl.disabled = true; 
+
+            const { data: checkData } = await supabaseClient.from('Seats').select('*').eq('seat_id', 'TEACHER');
+
+            let res;
+
+            if (checkData && checkData.length > 0) {
+
+                res = await supabaseClient.from('Seats').update({ name: payload, absen: 0 }).eq('seat_id', 'TEACHER');
+
+            } else {
+
+                res = await supabaseClient.from('Seats').insert({ seat_id: 'TEACHER', name: payload, absen: 0 });
+
+            }
+
+            toggleEl.disabled = false;
+
+            if (res.error) {
+
+                alert("Gagal menyimpan status libur: " + res.error.message);
+
+                console.error(res.error);
+
+                toggleEl.checked = !isHoliday; 
+
+                currentTeacherInfo.holidayOverrideValue = !isHoliday;
+
+            } else {
+
+                loadSeats();
+
+            }
+
+        }
+
+        function promptDeleteAll() {
+
+            openModal("modal-confirm-all");
+
+        }
+
+        async function submitDeleteAll() {
+
+            const { error: delError } = await supabaseClient
+
+                .from("Seats")
+
+                .delete()
+
+                .neq("seat_id", "TEACHER");
+
+            if (delError) {
+
+                alert("Gagal menghapus semua kursi");
+
+                console.error(delError);
+
+            } else {
+
+                closeModal();
+
+                loadSeats();
+
+            }
+
+        }
+
+        function promptRandomize() {
+
+            openModal("modal-randomize");
+
+        }
+
+        async function submitRandomizeSeats() {
+
+            await supabaseClient.from("Seats").delete().neq("seat_id", "TEACHER");
+
+            const genders = {
+
+                "Hanif": "M", "Aisha": "F", "Anel": "M", "Arsyad": "M", "Avika": "F", "Azruul": "M",
+
+                "Banyu": "M", "Nayya": "F", "Chelsea": "F", "Gio": "M", "Citra": "F", "Dimas R": "M",
+
+                "Zara": "F", "Sella": "F", "Ifah": "F", "Dimas J": "M", "Kael": "M", "Kayfa": "F",
+
+                "Keysha": "F", "Khansa": "F", "Laela": "F", "Lintang": "F", "Azzam": "M", "Raihan": "M",
+
+                "Esha": "M", "Naila": "F", "Tamaro": "M", "Nayla": "F", "Pita": "F", "RizQ": "M",
+
+                "Nadya": "F", "Viola": "F"
+
+            };
+
+            let boys = studentData.filter(s => genders[s.name] === "M");
+
+            let girls = studentData.filter(s => genders[s.name] === "F");
+
+            const shuffle = (array) => {
+
+                for (let i = array.length - 1; i > 0; i--) {
+
+                    const j = Math.floor(Math.random() * (i + 1));
+
+                    [array[i], array[j]] = [array[j], array[i]];
+
+                }
+
+            };
+
+            shuffle(boys);
+
+            shuffle(girls);
+
+            const desks = [];
+
+            for (let r of rows) {
+
+                for (let d = 0; d < 4; d++) {
+
+                    desks.push({ row: r, deskIdx: d });
+
+                }
+
+            }
+
+            shuffle(desks);
+
+            const insertData = [];
+
+            desks.forEach(desk => {
+
+                let seat1, seat2;
+
+                if (boys.length > 0) {
+
+                    seat1 = boys.pop();
+
+                    seat2 = girls.pop();
+
+                } else {
+
+                    seat1 = girls.pop();
+
+                    seat2 = girls.pop();
+
+                }
+
+                if (Math.random() > 0.5) {
+
+                    [seat1, seat2] = [seat2, seat1];
+
+                }
+
+                const col1 = desk.deskIdx * 2 + 1;
+
+                const col2 = desk.deskIdx * 2 + 2;
+
+                insertData.push({ seat_id: desk.row + col1, name: seat1.name, absen: seat1.absen });
+
+                insertData.push({ seat_id: desk.row + col2, name: seat2.name, absen: seat2.absen });
+
+            });
+
+            const { error } = await supabaseClient.from("Seats").insert(insertData);
+
+            if (error) {
+
+                alert("Gagal mengacak kursi");
+
+                console.error(error);
+
+            } else {
+
+                closeModal();
+
+                loadSeats();
+
+            }
+
+        }
+
+        function toggleAdmin() {
+
+            document.querySelector('.admin-panel').classList.toggle('open');
+
+        }
+
+        function openModal(id) {
+
+            document.getElementById("modal-overlay").style.display = "flex";
+
+            document.querySelectorAll(".modal-content").forEach(el => el.style.display = "none");
+
+            document.getElementById(id).style.display = "block";
+
+        }
+
+        function closeModal() {
+
+            document.getElementById("modal-overlay").style.display = "none";
+
+            currentSeat = null;
+
+        }
+
+        function openLoginModal() {
+
+            document.getElementById("login-password").value = "";
+
+            openModal("modal-login");
+
+        }
+
+        function submitLogin() {
+
+            const pwd = document.getElementById("login-password").value;
+
+            if (pwd === "Zyrina") {
+
+                isAdminLoggedIn = true;
+
+                localStorage.setItem('isAdminLoggedIn', 'true');
+
+                document.getElementById("admin-login-area").style.display = "none";
+
+                document.getElementById("admin-content-area").style.display = "block";
+
+                closeModal();
+
+                loadSeats();
+
+            } else {
+
+                alert("Password salah!");
+
+            }
+
+        }
+
+        function logoutAdmin() {
+
+            isAdminLoggedIn = false;
+
+            localStorage.removeItem('isAdminLoggedIn');
+
+            document.getElementById("admin-login-area").style.display = "block";
+
+            document.getElementById("admin-content-area").style.display = "none";
+
+            adminList.innerHTML = "";
+
+        }
+
+        function promptBooking(seatId) {
+
+            currentSeat = seatId;
+
+            document.getElementById("booking-seat-id").innerText = seatId;
+
+            document.getElementById("booking-absen").value = "";
+
+            const selectEl = document.getElementById("booking-name");
+
+            selectEl.innerHTML = '<option value="" disabled selected>Pilih Nama</option>';
+
+            const usedNames = globalFilledSeats.map(s => s.name);
+
+            studentData.forEach(student => {
+
+                if (!usedNames.includes(student.name)) {
+
+                    const opt = document.createElement("option");
+
+                    opt.value = student.name;
+
+                    opt.innerText = student.name;
+
+                    selectEl.appendChild(opt);
+
+                }
+
+            });
+
+            selectEl.onchange = function () {
+
+                const sData = studentData.find(s => s.name === this.value);
+
+                if (sData) {
+
+                    document.getElementById("booking-absen").value = sData.absen;
+
+                }
+
+            };
+
+            openModal("modal-booking");
+
+        }
+
+        async function submitBooking() {
+
+            const name = document.getElementById("booking-name").value;
+
+            const absenVal = document.getElementById("booking-absen").value;
+
+            if (!name || !absenVal) {
+
+                alert("Harap pilih Nama dan isi Nomor Absen!");
+
+                return;
+
+            }
+
+            const absen = parseInt(absenVal, 10);
+
+            if (absen < 1 || absen > 32) {
+
+                alert("Nomor Absen harus antara 1 sampai 32!");
+
+                return;
+
+            }
+
+            const usedAbsens = globalFilledSeats.map(s => parseInt(s.absen, 10));
+
+            if (usedAbsens.includes(absen)) {
+
+                alert("Nomor Absen " + absen + " sudah terdaftar di kursi lain!");
+
+                return;
+
+            }
+
+            const { error: insertError } = await supabaseClient
+
+                .from("Seats")
+
+                .insert({ seat_id: currentSeat, name: name, absen: absen });
+
+            if (insertError) {
+
+                alert("Gagal simpan");
+
+                console.error(insertError);
+
+            } else {
+
+                closeModal();
+
+                loadSeats();
+
+            }
+
+        }
+
+        function showDetail(seatId, name, absen) {
+
+            document.getElementById("detail-seat-id").innerText = seatId;
+
+            document.getElementById("detail-name").innerText = name;
+
+            document.getElementById("detail-absen").innerText = absen;
+
+            openModal("modal-detail");
+
+        }
+
+        function promptDelete(seatId, name) {
+
+            currentSeat = seatId;
+
+            document.getElementById("confirm-seat-id").innerText = seatId;
+
+            document.getElementById("confirm-name").innerText = name;
+
+            openModal("modal-confirm");
+
+        }
+
+        async function submitDelete() {
+
+            const { error: delError } = await supabaseClient
+
+                .from("Seats")
+
+                .delete()
+
+                .eq("seat_id", currentSeat);
+
+            if (delError) {
+
+                alert("Gagal menghapus");
+
+                console.error(delError);
+
+            } else {
+
+                closeModal();
+
+                loadSeats();
+
+            }
+
+        }
+
+        async function loadSeats() {
+
+            const { data, error } = await supabaseClient
+
+                .from("Seats")
+
+                .select("*");
+
+            if (error) {
+
+                alert("Error load data");
+
+                console.error(error);
+
+                return;
+
+            }
+
+            seatsDiv.innerHTML = "";
+
+            if (isAdminLoggedIn) adminList.innerHTML = "";
+
+            const filledSeats = data.filter(s => s.name && s.seat_id !== 'TEACHER');
+
+            globalFilledSeats = filledSeats;
+
+            const teacherData = data.find(s => s.seat_id === 'TEACHER');
+
+            let tInfo = { mode: 'auto', subject: '-', time: '-', note: '-' };
+
+            if (teacherData && teacherData.name) {
+
+                try {
+
+                    tInfo = JSON.parse(teacherData.name);
+
+                } catch (e) {
+
+                    tInfo.subject = teacherData.name;
+
+                }
+
+            }
+
+            if (document.getElementById("admin-holiday-toggle")) {
+
+                const d = new Date();
+
+                const todayStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+
+                let isHoliday = false;
+
+                if (tInfo.holidayOverrideDate === todayStr) {
+
+                    isHoliday = tInfo.holidayOverrideValue;
+
+                } else if (nationalHolidays[todayStr]) {
+
+                    isHoliday = true;
+
+                }
+
+                document.getElementById("admin-holiday-toggle").checked = isHoliday;
+
+            }
+
+            updateScheduleBoardUI(tInfo);
+
+            if (isAdminLoggedIn) {
+
+                if (filledSeats.length === 0) {
+
+                    adminList.innerHTML = '<div style="font-size:12px; opacity:0.5;">Belum ada kursi terisi</div>';
+
+                } else {
+
+                    filledSeats.sort((a, b) => a.seat_id.localeCompare(b.seat_id)).forEach(s => {
+
+                        const item = document.createElement("div");
+
+                        item.className = "admin-item";
+
+                        const info = document.createElement("span");
+
+                        info.innerText = s.seat_id + " - " + s.name;
+
+                        const delBtn = document.createElement("button");
+
+                        delBtn.className = "btn-delete";
+
+                        delBtn.innerText = "Hapus";
+
+                        delBtn.onclick = () => promptDelete(s.seat_id, s.name);
+
+                        item.appendChild(info);
+
+                        item.appendChild(delBtn);
+
+                        adminList.appendChild(item);
+
+                    });
+
+                }
+
+            }
+
+            rows.forEach(row => {
+
+                const rowDiv = document.createElement("div");
+
+                rowDiv.className = "desk-row";
+
+                for (let deskIdx = 0; deskIdx < 4; deskIdx++) {
+
+                    const deskDiv = document.createElement("div");
+
+                    deskDiv.className = "desk";
+
+                    for (let seatIdx = 1; seatIdx <= 2; seatIdx++) {
+
+                        const col = deskIdx * 2 + seatIdx;
+
+                        const seatId = row + col;
+
+                        const seatData = data.find(x => x.seat_id === seatId);
+
+                        const seatDiv = document.createElement("div");
+
+                        seatDiv.className = "seat " + (seatData ? "filled" : "empty");
+
+                        const nameDiv = document.createElement("div");
+
+                        nameDiv.className = "seat-name";
+
+                        nameDiv.innerText = seatData ? seatData.name : seatId;
+
+                        const absenDiv = document.createElement("div");
+
+                        absenDiv.className = "seat-absen";
+
+                        absenDiv.innerText = seatData ? seatData.absen : "-";
+
+                        seatDiv.appendChild(nameDiv);
+
+                        seatDiv.appendChild(absenDiv);
+
+                        seatDiv.onclick = () => {
+
+                            if (seatData) {
+
+                                showDetail(seatId, seatData.name, seatData.absen);
+
+                            } else if (pageMode === 'register') {
+
+                                promptBooking(seatId);
+
+                            }
+
+                        };
+
+                        deskDiv.appendChild(seatDiv);
+
+                    }
+
+                    rowDiv.appendChild(deskDiv);
+
+                }
+
+                seatsDiv.appendChild(rowDiv);
+
+            });
+
+        }
+
+        loadSeats();
+
+        supabaseClient
+
+            .channel('realtime-seats')
+
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'Seats' }, payload => {
+
+                console.log('Update Seats terdeteksi:', payload);
+
+                loadSeats();
+
+            })
+
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'Schedules' }, payload => {
+
+                console.log('Update Schedules terdeteksi:', payload);
+
+                fetchSchedules();
+
+            })
+
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'Holidays' }, payload => {
+
+                console.log('Update Holidays terdeteksi:', payload);
+
+                fetchHolidays();
+
+            })
+
+            .subscribe();
+
+    </script>
+
+</body>
+
+</html>
