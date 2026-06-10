@@ -328,6 +328,9 @@
                 window.location.href = pages[pageId];
             }
         }
+        window.addEventListener('pageshow', function(event) {
+            document.getElementById('loading-indicator').style.display = 'none';
+        });
     </script>
 </body>
 </html>
